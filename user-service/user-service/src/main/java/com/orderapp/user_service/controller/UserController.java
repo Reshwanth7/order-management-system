@@ -1,29 +1,42 @@
 package com.orderapp.user_service.controller;
 
+import com.orderapp.user_service.dto.CreateUserRequest;
+import com.orderapp.user_service.dto.UserResponse;
+import com.orderapp.user_service.entity.User;
+import com.orderapp.user_service.service.UserService;
+import jakarta.validation.Valid;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+
+import java.net.URI;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
 
-    @GetMapping("/hello")
-    public String hello() {
-        return "Hello from User Service on port 9091!";
+    private final UserService userService;
+
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
+
+    @PostMapping
+    public ResponseEntity<UserResponse> create(@Valid @RequestBody CreateUserRequest request) {
+        UserResponse response = userService.createUser(request);
+
+        URI location = ServletUriComponentsBuilder
+                .fromCurrentRequest()
+                .path("/{id}")
+                .buildAndExpand(response.id())
+                .toUri();
+
+        return ResponseEntity.created(location).body(response);
     }
 
     @GetMapping("/{id}")
-    public Map<String, Object> getUser(@PathVariable("id") Long id) {
-        return Map.of(
-                "id",    id,
-                "name",  "Test User",
-                "email", "test@example.com",
-                "port",  "9091"
-        );
-    }
-
-    @GetMapping("/health")
-    public Map<String, String> health() {
-        return Map.of("status", "UP", "service", "user-service");
+    public ResponseEntity<UserResponse> get(@PathVariable Long id) {
+        return ResponseEntity.ok(userService.getUserById(id));
     }
 }
