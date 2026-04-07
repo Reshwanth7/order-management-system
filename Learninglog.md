@@ -8,7 +8,7 @@
 **Next:** Day 2 — PostgreSQL + JPA in user-service
 
 ## Apr 7 2026 — Phase 1 Day 2 COMPLETE
-**Built:** PostgreSQL integration + full JPA persistence layer in user-service
+**Built:** H2 DB integration + full JPA persistence layer in user-service
 **Learned:** JPA/Hibernate stack (Entity → Repository → HikariCP → PostgreSQL), @Transactional behaviour, ddl-auto strategies, HikariCP connection pooling
 **Bugs fixed:** Docker Desktop virtualization error (switched to native PostgreSQL install), Java 25 SDK conflict (downgraded to Java 21 LTS)
 **Tests passing:** POST /api/users and GET /api/users/{id} through gateway with PostgreSQL persistence

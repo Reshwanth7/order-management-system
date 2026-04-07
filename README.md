@@ -55,16 +55,18 @@ Location: /api/users/1
 ```
 
 ## Database
-- PostgreSQL running locally on port 5432
-- Database name: `userdb`
-- Hibernate auto-manages schema via `ddl-auto: update`
+- H2 in-memory database (development)
+- Console available at `http://localhost:9091/h2-console` when app is running
+- JDBC URL: `jdbc:h2:mem:userdb` — Username: `sa` — Password: *(blank)*
+- Hibernate auto-manages schema via `ddl-auto: create-drop`
+- Will migrate to PostgreSQL 16 once local setup is resolved
 
 ## How to run
-1. Start PostgreSQL and ensure `userdb` database exists
+1. No database setup needed — H2 starts automatically with the app
 2. Start `eureka-server`
 3. Start `user-service`
 4. Start `api-gateway`
-5. Test via gateway:
+5. Test via gateway: ...
 ```bash
 # Create a user
 curl -X POST http://localhost:9093/api/users \
@@ -76,9 +78,9 @@ curl http://localhost:9093/api/users/1
 ```
 
 ## Project Progress
-| Day | Focus | Status |
-|-----|-------|--------|
+| Day | Focus                                  | Status |
+|-----|----------------------------------------|--------|
 | Day 1 | Project setup, Eureka, Gateway routing | ✅ Done |
-| Day 2 | PostgreSQL, JPA, Hibernate, Lombok | ✅ Done |
-| Day 3 | DTOs, MapStruct, Bean Validation | ✅ Done |
-| Day 4 | Global exception handling | 🔜 Next |
+| Day 2 | H2 Db, JPA, Hibernate, Lombok          | ✅ Done |
+| Day 3 | DTOs, MapStruct, Bean Validation       | ✅ Done |
+| Day 4 | Global exception handling              | 🔜 Next |
