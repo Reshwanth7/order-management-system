@@ -10,6 +10,13 @@ spring:
         locator:
           enabled: false
       routes:
+        - id: user-service-auth
+          uri: lb://user-service
+          predicates:
+            - Path=/api/auth/**
+          filters:
+            - StripPrefix=0
+
         - id: user-service-route
           uri: lb://USER-SERVICE
           predicates:

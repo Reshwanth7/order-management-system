@@ -19,11 +19,16 @@ spring:
         ddl-auto: create-drop
       show-sql: true
 
+
 eureka:
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/
   instance:
     prefer-ip-address: true
+
+jwt:
+  secret: your-256-bit-secret-key-here-make-it-long-enough-for-hs256
+  expiration: 86400000   # 24 hours in milliseconds
 
 

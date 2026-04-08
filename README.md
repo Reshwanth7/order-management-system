@@ -77,10 +77,30 @@ curl -X POST http://localhost:9093/api/users \
 curl http://localhost:9093/api/users/1
 ```
 
+## API Endpoints
+
+### Auth (public)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | /api/auth/register | Register new user, returns JWT |
+| POST | /api/auth/login | Login, returns JWT |
+
+### Users (protected — requires Bearer token)
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | /api/users | Create user |
+| GET | /api/users/{id} | Get user by ID |
+
+## Security
+All /api/users/** routes require:
+Authorization: Bearer <jwt_token>
+
 ## Project Progress
 | Day | Focus                                  | Status |
 |-----|----------------------------------------|--------|
 | Day 1 | Project setup, Eureka, Gateway routing | ✅ Done |
-| Day 2 | H2 Db, JPA, Hibernate, Lombok          | ✅ Done |
+| Day 2 | H2, JPA, Hibernate, Lombok             | ✅ Done |
 | Day 3 | DTOs, MapStruct, Bean Validation       | ✅ Done |
-| Day 4 | Global exception handling              | 🔜 Next |
+| Day 4 | Global exception handling              | ✅ Done |
+| Day 5 | Spring Security + JWT auth             | ✅ Done |
+| Day 6 | order-service + inter-service comms    | 🔜 Next |
