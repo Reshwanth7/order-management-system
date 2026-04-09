@@ -34,3 +34,17 @@
 **Bugs fixed:** Gateway 404 for /api/auth/** (added second route in gateway yml), 403 instead of 401 on missing token (added JwtAuthEntryPoint wired into SecurityConfig)
 **Tests passing:** POST /api/auth/register returns token, POST /api/auth/login returns token, GET /api/users/{id} with token returns 200, GET /api/users/{id} without token returns 401
 **Next:** Day 6 — order-service + inter-service communication
+
+## Apr 9 2026 — Phase 1 Day 6 COMPLETE
+**Built:** order-service from scratch with full inter-service communication to user-service via OpenFeign
+**Learned:** Why each microservice owns its own database, OpenFeign declarative HTTP client, JWT forwarding via RequestInterceptor, Feign resolves service address via Eureka (lb://), SecurityConfig in order-service without UserDetailsService, parent pom.xml for multi-module IntelliJ project
+**Bugs fixed:** 500 on invalid userId (added UserNotFoundException + GlobalExceptionHandler to order-service), order-service open without token (added Spring Security + JwtAuthFilter), port conflict on 9092 (moved order-service to 9094), JWT secret mismatch between services (aligned secrets), IntelliJ not recognising order-service (added parent pom.xml with modules)
+**Tests passing:** POST /api/orders with valid token + valid userId returns 201, POST /api/orders with invalid userId returns 404, POST /api/orders without token returns 401, GET /api/orders/{id} returns order
+**Next:** Day 7 — Resilience4j circuit breaker + retry
+
+## Apr 9 2026 — Phase 1 Day 7 COMPLETE
+**Built:** Resilience4j circuit breaker + retry + timeout on order-service → user-service calls
+**Learned:** Circuit breaker three states (Closed/Open/Half-Open), why retry and circuit breaker serve different purposes, execution order (Retry → CircuitBreaker → TimeLimiter → Fallback), fallback method signature must match original method + Exception param, AOP required for Resilience4j annotations
+**Bugs fixed:** n/a — clean implementation
+**Tests passing:** Happy path returns 201, user-service stopped → fallback returns QUEUED status instantly with no 500, circuit reopens automatically after 10s wait when user-service restarts
+**Next:** Day 8 — Distributed tracing + structured logging

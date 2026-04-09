@@ -1,0 +1,65 @@
+server:
+  port: 9094
+
+spring:
+  application:
+    name: order-service
+
+  datasource:
+    url: jdbc:h2:mem:orderdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  h2:
+    console:
+      enabled: true
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+
+jwt:
+  secret: your-256-bit-secret-key-here-make-it-long-enough-for-hs256
+  expiration: 86400000   # 24 hours in milliseconds
+
+# Resilience4j configuration
+resilience4j:
+
+  circuitbreaker:
+    instances:
+      userService:                          # name used in @CircuitBreaker
+        sliding-window-size: 10            # look at last 10 calls
+        failure-rate-threshold: 50         # open if 50% fail
+        wait-duration-in-open-state: 10s   # stay open for 10 seconds
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+
+  retry:
+    instances:
+      userService:
+        max-attempts: 3                    # try 3 times
+        wait-duration: 500ms               # wait 500ms between retries
+        retry-exceptions:
+          - feign.FeignException.ServiceUnavailable
+          - feign.RetryableException
+
+  timelimiter:
+    instances:
+      userService:
+        timeout-duration: 2s               # give up after 2 seconds
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, circuitbreakers
+  health:
+    circuitbreakers:
+      enabled: true

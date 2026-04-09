@@ -24,6 +24,13 @@ spring:
           filters:
             - StripPrefix=0
 
+        - id: order-service
+          uri: lb://order-service
+          predicates:
+            - Path=/api/orders/**
+          filters:
+            - StripPrefix=0
+
 eureka:
   client:
     service-url:
