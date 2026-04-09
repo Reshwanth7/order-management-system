@@ -9,7 +9,7 @@ Microservices project built with Spring Boot 3.2.4 + Spring Cloud 2023.0.1
 - **order-service** — Order management REST API (port 9094)
 
 ## Architecture
-Client → API Gateway (9093) → Eureka lookup → User Service (9091) / Order Service (9094) → PostgreSQL
+Client → API Gateway (9093) → Eureka lookup → User Service (9091) / Order Service (9094) → H2 DB
 
 Each service owns its own database (database-per-service pattern).
 
@@ -18,7 +18,7 @@ Each service owns its own database (database-per-service pattern).
 - Spring Boot 3.2.4
 - Spring Cloud Gateway + Netflix Eureka
 - Spring Data JPA + Hibernate
-- PostgreSQL 16
+- H2 DB
 - MapStruct 1.5.5 (compile-time DTO mapping)
 - Lombok 1.18.30
 - Bean Validation (Jakarta)
