@@ -24,6 +24,8 @@ Each service owns its own database (database-per-service pattern).
 - Bean Validation (Jakarta)
 - OpenFeign (inter-service HTTP communication)
 - Resilience4j (circuit breaker, retry, timeout)
+- Micrometer Tracing + Zipkin (distributed tracing)
+- Logback structured logging (traceId/spanId in every log line)
 
 ## API Endpoints
 
@@ -79,7 +81,7 @@ JWT secret is shared and aligned across services. order-service runs its own `Jw
 
 ## Inter-Service Communication
 order-service calls user-service via **OpenFeign** (`lb://user-service` — resolved through Eureka).
-JWT tokens are forwarded automatically via a Feign `RequestInterceptor`.
+JWT tokens are forwarded automatically via a Feign `RequestInterceptor`. Trace context is propagated automatically via `feign-micrometer`, ensuring the same `traceId` flows across both services.
 
 ## Resilience (order-service → user-service)
 order-service wraps all user-service calls with **Resilience4j**:
@@ -93,6 +95,26 @@ Execution order: `Retry → CircuitBreaker → TimeLimiter → Fallback`
 
 AOP is required for Resilience4j annotations to function correctly.
 
+## Distributed Tracing
+Every request gets a `traceId` that flows across all services and is visible in both logs and Zipkin UI.
+
+- **Micrometer Tracing** + **Brave** — generates and propagates traceId/spanId
+- **Zipkin** — collects and visualises traces at `http://localhost:9411`
+- **feign-micrometer** — ensures Feign calls carry the same traceId to user-service
+- **B3 propagation** — trace headers passed automatically across service boundaries
+
+Run Zipkin locally without Docker:
+```bash
+curl -sSL https://zipkin.io/quickstart.sh | bash -s
+# Use full Java 21 path if system default is older
+"C:\Users\<user>\.jdks\<jdk-21>\bin\java" -jar zipkin.jar
+```
+
+Every log line includes `traceId/spanId`:
+```
+06:44:21 [69d8d4846c3a5f57b4d87774abb26124/dbd907029299a3b2] INFO ...
+```
+
 ## Database
 - H2 in-memory database (development)
 - Console available at `http://localhost:9091/h2-console` when app is running
@@ -101,7 +123,7 @@ AOP is required for Resilience4j annotations to function correctly.
 - Will migrate to PostgreSQL 16 once local setup is resolved
 
 ## How to run
-1. No database setup needed — H2 starts automatically with the app
+1. Start Zipkin: `"<java21-path>/bin/java" -jar zipkin.jar`
 2. Start `eureka-server`
 3. Start `user-service`
 4. Start `order-service`
@@ -124,6 +146,8 @@ curl http://localhost:9093/api/orders/1 \
   -H "Authorization: Bearer <token>"
 ```
 
+7. View traces at `http://localhost:9411`
+
 ## Project Structure
 Multi-module Maven project with a parent `pom.xml` — all services are registered as modules for proper IntelliJ recognition.
 
@@ -137,4 +161,5 @@ Multi-module Maven project with a parent `pom.xml` — all services are register
 | Day 5 | Spring Security + JWT auth | ✅ Done |
 | Day 6 | order-service + OpenFeign inter-service comms | ✅ Done |
 | Day 7 | Resilience4j circuit breaker + retry + timeout | ✅ Done |
-| Day 8 | Distributed tracing + structured logging | 🔜 Next |
+| Day 8 | Distributed tracing + structured logging | ✅ Done |
+| Day 9 | Docker | 🔜 Next |

@@ -48,3 +48,10 @@
 **Bugs fixed:** n/a — clean implementation
 **Tests passing:** Happy path returns 201, user-service stopped → fallback returns QUEUED status instantly with no 500, circuit reopens automatically after 10s wait when user-service restarts
 **Next:** Day 8 — Distributed tracing + structured logging
+
+## Apr 10 2026 — Phase 1 Day 8 COMPLETE
+**Built:** Distributed tracing with Micrometer + Zipkin and structured logging across user-service and order-service
+**Learned:** How traceId/spanId propagate across microservices, why actuator is required for tracing auto-configuration, Zipkin reporter async flush behaviour, feign-micrometer for automatic trace context propagation in Feign calls, B3 propagation headers (X-B3-TraceId, X-B3-SpanId), why spring.zipkin.base-url is a Spring Cloud Sleuth property and doesn't exist in Spring Boot 3.x (use management.zipkin.tracing.endpoint instead)
+**Bugs fixed:** Traces not appearing in Zipkin (missing spring-boot-starter-actuator in user-service), traceId showing [/] instead of actual IDs (zipkin-sender-urlconnection missing), different traceIds across services (added feign-micrometer dependency to wire Feign into Micrometer tracing context), Java version mismatch running Zipkin JAR (used full Java 21 path instead of system default Java 8)
+**Tests passing:** Happy path POST /api/orders → single traceId visible in Zipkin spanning both services, traceId/spanId visible in every log line, cross-service traceId matches between order-service logs and Zipkin, user-service down → fallback fires → Zipkin shows order-service span only with circuit open
+**Next:** Day 9 — Docker
