@@ -7,16 +7,19 @@ Microservices project built with Spring Boot 3.2.4 + Spring Cloud 2023.0.1
 - **api-gateway** — Single entry point, routes all requests (port 9093)
 - **user-service** — User management REST API (port 9091)
 - **order-service** — Order management REST API (port 9094)
+- **config-server** — Centralised configuration server (port 8888)
 
 ## Architecture
 Client → API Gateway (9093) → Eureka lookup → User Service (9091) / Order Service (9094) → H2 DB
 
 Each service owns its own database (database-per-service pattern).
+All services fetch shared config from Config Server on startup.
 
 ## Tech Stack
 - Java 21 (LTS)
 - Spring Boot 3.2.4
 - Spring Cloud Gateway + Netflix Eureka
+- Spring Cloud Config Server (centralised config)
 - Spring Data JPA + Hibernate
 - H2 DB
 - MapStruct 1.5.5 (compile-time DTO mapping)
@@ -77,7 +80,23 @@ All `/api/users/**` and `/api/orders/**` routes require:
 ```
 Authorization: Bearer <jwt_token>
 ```
-JWT secret is shared and aligned across services. order-service runs its own `JwtAuthFilter` and `SecurityConfig` (no `UserDetailsService` required — token validation only).
+JWT secret is shared and aligned across services via Config Server. order-service runs its own `JwtAuthFilter` and `SecurityConfig` (no `UserDetailsService` required — token validation only).
+
+## Centralised Configuration
+Config Server serves shared configuration to all services on startup.
+
+- JWT secret and expiration are defined once in Config Server — not duplicated across services
+- Eureka URL is defined once in Config Server
+- Services use `bootstrap.yml` + `spring-cloud-starter-bootstrap` to fetch config before the application context starts
+- Config files stored at `config-server/src/main/resources/config/`
+    - `user-service.yml`
+    - `order-service.yml`
+
+Verify config is being served:
+```
+http://localhost:8888/user-service/default
+http://localhost:8888/order-service/default
+```
 
 ## Inter-Service Communication
 order-service calls user-service via **OpenFeign** (`lb://user-service` — resolved through Eureka).
@@ -120,33 +139,51 @@ Every log line includes `traceId/spanId`:
 - Console available at `http://localhost:9091/h2-console` when app is running
 - JDBC URL: `jdbc:h2:mem:userdb` — Username: `sa` — Password: *(blank)*
 - Hibernate auto-manages schema via `ddl-auto: create-drop`
-- Will migrate to PostgreSQL 16 once local setup is resolved
+- Will migrate to PostgreSQL 16 in Docker week
 
 ## How to run
 1. Start Zipkin: `"<java21-path>/bin/java" -jar zipkin.jar`
-2. Start `eureka-server`
-3. Start `user-service`
-4. Start `order-service`
-5. Start `api-gateway`
-6. Test via gateway:
+2. Start `config-server`
+3. Start `eureka-server`
+4. Start `user-service`
+5. Start `order-service`
+6. Start `api-gateway`
+7. Test via gateway:
 ```bash
 # Register and get a token
 curl -X POST http://localhost:9093/api/auth/register \
   -H "Content-Type: application/json" \
   -d '{"name":"Alice","email":"alice@example.com","password":"securepass123"}'
 
+# Login
+curl -X POST http://localhost:9093/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"alice@example.com","password":"securepass123"}'
+
 # Create an order (replace <token> with JWT from above)
 curl -X POST http://localhost:9093/api/orders \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer <token>" \
-  -d '{"userId":1,"item":"Laptop","quantity":1}'
+  -d '{"userId":1,"productName":"Laptop","quantity":1,"totalPrice":999.99}'
 
 # Get an order
 curl http://localhost:9093/api/orders/1 \
   -H "Authorization: Bearer <token>"
+
+# Invalid userId — expect 404
+curl -X POST http://localhost:9093/api/orders \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer <token>" \
+  -d '{"userId":999,"productName":"Laptop","quantity":1,"totalPrice":999.99}'
+
+# No token — expect 401
+curl -X POST http://localhost:9093/api/orders \
+  -H "Content-Type: application/json" \
+  -d '{"userId":1,"productName":"Laptop","quantity":1,"totalPrice":999.99}'
 ```
 
-7. View traces at `http://localhost:9411`
+8. View traces at `http://localhost:9411`
+9. Verify config at `http://localhost:8888/user-service/default`
 
 ## Project Structure
 Multi-module Maven project with a parent `pom.xml` — all services are registered as modules for proper IntelliJ recognition.
@@ -162,4 +199,6 @@ Multi-module Maven project with a parent `pom.xml` — all services are register
 | Day 6 | order-service + OpenFeign inter-service comms | ✅ Done |
 | Day 7 | Resilience4j circuit breaker + retry + timeout | ✅ Done |
 | Day 8 | Distributed tracing + structured logging | ✅ Done |
-| Day 9 | Docker | 🔜 Next |
+| Day 9 | Spring Cloud Config Server | ✅ Done |
+| Day 10 | Consolidation + end-to-end verification | ✅ Done |
+| Day 11 | Docker — Dockerfile + multi-stage builds | 🔜 Next |

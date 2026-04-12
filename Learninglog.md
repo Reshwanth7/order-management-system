@@ -54,4 +54,18 @@
 **Learned:** How traceId/spanId propagate across microservices, why actuator is required for tracing auto-configuration, Zipkin reporter async flush behaviour, feign-micrometer for automatic trace context propagation in Feign calls, B3 propagation headers (X-B3-TraceId, X-B3-SpanId), why spring.zipkin.base-url is a Spring Cloud Sleuth property and doesn't exist in Spring Boot 3.x (use management.zipkin.tracing.endpoint instead)
 **Bugs fixed:** Traces not appearing in Zipkin (missing spring-boot-starter-actuator in user-service), traceId showing [/] instead of actual IDs (zipkin-sender-urlconnection missing), different traceIds across services (added feign-micrometer dependency to wire Feign into Micrometer tracing context), Java version mismatch running Zipkin JAR (used full Java 21 path instead of system default Java 8)
 **Tests passing:** Happy path POST /api/orders → single traceId visible in Zipkin spanning both services, traceId/spanId visible in every log line, cross-service traceId matches between order-service logs and Zipkin, user-service down → fallback fires → Zipkin shows order-service span only with circuit open
-**Next:** Day 9 — Docker
+**Next:** Day 9 — Config Server
+
+## Apr 12 2026 — Phase 1 Day 9 COMPLETE
+**Built:** Spring Cloud Config Server — centralised configuration for user-service and order-service
+**Learned:** Why centralised config matters (no more duplicated secrets across services), how Config Server serves yml files per service name, native profile vs Git-backed config, why bootstrap.yml loads before application.yml (bootstrap phase), why spring-cloud-starter-bootstrap is required in Spring Boot 3.x for bootstrap.yml to be picked up, how @Value still works unchanged when values come from Config Server
+**Bugs fixed:** jwt.secret placeholder not resolving (services starting before config fetched — fixed with bootstrap.yml + spring-cloud-starter-bootstrap), ${project.build.directory} in classpath instead of target (Maven not compiled properly — fixed with clean compile + Maven reload), root pom.xml not recognised by IntelliJ Maven panel (added via Maven panel + button then right-click → Add as Maven Project)
+**Tests passing:** http://localhost:8888/user-service/default returns JWT secret and Eureka URL, http://localhost:8888/order-service/default returns config, user-service and order-service start and fetch config from Config Server, full end-to-end POST /api/orders with JWT works with no local secret config
+**Next:** Day 10 — Consolidation
+
+## Apr 12 2026 — Phase 1 Day 10 COMPLETE
+**Built:** n/a — consolidation and end-to-end verification day
+**Learned:** Importance of startup order in a microservices system (Config Server must start before services that depend on it), how all the pieces built in Days 1–9 work together as a system, how to verify the full stack is healthy before moving to Docker week
+**Bugs fixed:** n/a — clean consolidation
+**Tests passing:** Full startup order verified (Zipkin → Config Server → Eureka → user-service → order-service → api-gateway), POST /api/auth/register returns token, POST /api/auth/login returns token, POST /api/orders with valid token + valid userId returns 201, GET /api/orders/{id} returns order, POST /api/orders with invalid userId returns 404, POST /api/orders without token returns 401
+**Next:** Day 11 — Docker (Dockerfile + multi-stage builds)
